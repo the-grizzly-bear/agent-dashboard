@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Agent Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <div class="app-shell" id="app-shell">
+    <nav class="rail" id="rail">
+      <div class="rail-brand">
+        <span class="mark">AD</span><span class="label">Agent Dashboard</span>
+      </div>
+
+      <div class="rail-nav">
+        <button class="rail-btn active" data-tab="runs" title="Sessions">
+          <span class="rail-icon">&#9673;</span><span class="rail-label">Sessions</span>
+        </button>
+        <button class="rail-btn" data-tab="agents" title="Agents">
+          <span class="rail-icon">&#9737;</span><span class="rail-label">Agents</span>
+        </button>
+        <button class="rail-btn" data-tab="models" title="Models">
+          <span class="rail-icon">&#9707;</span><span class="rail-label">Models</span>
+        </button>
+        <button class="rail-btn" data-tab="settings" title="Settings">
+          <span class="rail-icon">&#9881;</span><span class="rail-label">Settings</span>
+        </button>
+      </div>
+
+      <div class="rail-bottom">
+        <div class="rail-user" title="Local">L</div>
+        <div id="theme-picker" class="theme-picker">
+          <button class="theme-swatch" data-theme="slate" title="Slate" style="background:#9ca3af"></button>
+          <button class="theme-swatch" data-theme="emerald" title="Emerald" style="background:#50fa7b"></button>
+          <button class="theme-swatch" data-theme="amber" title="Amber" style="background:#f0ad4e"></button>
+          <button class="theme-swatch" data-theme="violet" title="Violet" style="background:#c678dd"></button>
+          <button class="theme-swatch" data-theme="ocean" title="Ocean" style="background:#56b6c2"></button>
+        </div>
+        <button id="collapse-rail-btn" class="rail-collapse-btn" title="Collapse sidebar">&laquo;</button>
+      </div>
+    </nav>
+
+    <main class="app-main">
+      <section id="tab-runs" class="tab active">
+        <div class="runs-layout">
+          <aside class="runs-list">
+            <div class="runs-list-header">
+              <button id="new-run-btn" class="primary">+ New Session</button>
+            </div>
+            <input id="session-search" type="text" placeholder="Search sessions…" class="session-search" />
+            <ul id="conversation-list"></ul>
+          </aside>
+          <div class="run-view">
+            <div id="run-empty" class="empty">Select or start a session.</div>
+            <div id="run-active" class="hidden">
+              <div class="run-header">
+                <div>
+                  <h2 id="run-topic"></h2>
+                  <span id="run-status" class="badge"></span>
+                </div>
+                <div class="run-actions">
+                  <button id="rename-run-btn" class="icon-btn" title="Rename">Rename</button>
+                  <button id="copy-run-btn" class="icon-btn" title="Copy transcript">Copy</button>
+                  <button id="export-run-btn" class="icon-btn" title="Export as Markdown">Export</button>
+                  <button id="print-run-btn" class="icon-btn" title="Print / Save as PDF">PDF</button>
+                  <button id="stop-run-btn" class="danger">Stop</button>
+                  <button id="delete-run-btn" class="danger" title="Delete session">Delete</button>
+                </div>
+              </div>
+              <div id="transcript" class="transcript"></div>
+              <form id="inject-form" class="inject-form">
+                <input id="inject-input" type="text" placeholder="Say something into the session…" autocomplete="off" />
+                <button type="submit">Send</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-agents" class="tab">
+        <div class="agents-header">
+          <h2>Agents</h2>
+          <button id="new-agent-btn" class="primary">+ New Agent</button>
+        </div>
+        <div id="agents-list" class="agents-grid"></div>
+      </section>
+
+      <section id="tab-models" class="tab">
+        <div class="agents-header">
+          <h2>Models</h2>
+        </div>
+        <div class="model-pull">
+          <input id="pull-model-input" type="text" placeholder="model name, e.g. llama3.1" />
+          <button id="pull-model-btn">Pull</button>
+          <span id="pull-status"></span>
+        </div>
+        <div id="model-list" class="models-grid"></div>
+      </section>
+
+      <section id="tab-settings" class="tab">
+        <h2>Settings</h2>
+        <form id="settings-form" class="settings-form">
+          <label>
+            Ollama host
+            <input id="setting-ollama-host" type="text" placeholder="http://localhost:11434" />
+          </label>
+          <label>
+            Discord webhook URL
+            <input id="setting-discord-webhook" type="text" placeholder="https://discord.com/api/webhooks/…" />
+          </label>
+          <label class="checkbox">
+            <input id="setting-mirror-agents" type="checkbox" />
+            Mirror agent messages to Discord
+          </label>
+          <label class="checkbox">
+            <input id="setting-mirror-user" type="checkbox" />
+            Mirror my injected prompts to Discord
+          </label>
+          <button type="submit" class="primary">Save Settings</button>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <div id="modal-backdrop" class="modal-backdrop hidden">
+    <div id="modal" class="modal"></div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

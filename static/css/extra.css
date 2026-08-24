@@ -1,0 +1,419 @@
+/* Additions on top of Odysseus's real style.css for things they don't have. */
+
+@font-face {
+  font-family: 'Roboto Mono';
+  font-weight: 100 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('/static/fonts/RobotoMono-Variable.woff2') format('woff2');
+}
+body { font-family: 'Roboto Mono', ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+
+/* ---------- themes ----------
+   Real, published color schemes (not hand-picked by us) — three Nord
+   accent variants sharing one base, plus classic Discord. Each theme sets
+   bg/panel/fg/border/accent together as one look, same as how Odysseus's
+   own theme picker works. --accent/--panel-2/--panel-3/--fg-bright/
+   --brand-color are not Odysseus's real tokens — --accent in particular
+   backs their var(--accent, var(--red)) fallback chain used throughout
+   their file, so it must always be set or everything reverts to red.
+
+   Colors are defined ONCE here; static/js/app.js reads them back via
+   getComputedStyle instead of keeping a second hardcoded copy in sync —
+   that duplication was the actual cause of stale colors earlier. */
+
+/* Three Nord variants named after Nord's own actual palette groups —
+   Night (Polar Night, pure dark neutral), Snow (Snow White, real light
+   theme), Aurora (colorful, multi-hue). Not one base with a swapped
+   accent — each is a genuinely different look. */
+
+/* Scoped to html[data-theme] (not the bare [data-theme] attribute selector)
+   so these rules only ever apply at the page root — the theme-card preview
+   swatches in the Theme modal also carry a data-theme attribute (used only
+   to identify which theme they represent for click handling), and a bare
+   attribute selector here would leak these variables into them too. */
+html,
+html[data-theme="nord-night"] {
+  --bg: #292e39; --panel: #2e3440; --panel-2: #3b4252; --panel-3: #434c5e;
+  --border: #4c566a; --color-muted: #d8dee9; --fg: #eceff4; --fg-bright: #f8f9fb;
+  --accent: #d8dee9; /* no hue at all — pure Polar Night, monochrome */
+  --red: #bf616a;
+  --brand-color: var(--accent);
+}
+
+html[data-theme="nord-snow"] {
+  /* A real light theme: background comes from the Snow White ramp
+     instead of just flipping text color on a dark bg. */
+  --bg: #eceff4; --panel: #e5e9f0; --panel-2: #d8dee9; --panel-3: #ffffff;
+  --border: #d8dee9; --color-muted: #4c566a; --fg: #2e3440; --fg-bright: #292e39;
+  --accent: #5e81ac; /* nord10, deep frost blue — needed for contrast on a light bg */
+  --red: #bf616a;
+  --brand-color: var(--accent);
+}
+
+html[data-theme="nord-aurora"] {
+  --bg: #292e39; --panel: #2e3440; --panel-2: #3b4252; --panel-3: #434c5e;
+  --border: #4c566a; --color-muted: #d8dee9; --fg: #eceff4; --fg-bright: #f8f9fb;
+  --accent: #b48ead; /* nord15 as the one consistent accent for buttons etc.; nav icons below each get their own distinct Aurora hue instead of matching it */
+  --red: #bf616a;
+  --brand-color: var(--accent);
+}
+html[data-theme="nord-aurora"] #new-chat-btn { color: #bf616a; } /* nord11 red */
+html[data-theme="nord-aurora"] #agents-btn { color: #d08770; }   /* nord12 orange */
+html[data-theme="nord-aurora"] #memory-btn { color: #ebcb8b; }   /* nord13 yellow */
+html[data-theme="nord-aurora"] #theme-btn { color: #a3be8c; }    /* nord14 green */
+html[data-theme="nord-aurora"] #settings-btn { color: #b48ead; } /* nord15 purple */
+
+html[data-theme="discord"] {
+  --bg: #36393e; --panel: #282b30; --panel-2: #2f3136; --panel-3: #424549;
+  --fg: #dcddde; --fg-bright: #ffffff; --color-muted: #96989d;
+  --border: #1e2124; --accent: #7289da; --red: #f04747;
+  --brand-color: var(--accent);
+}
+
+/* Agent bubble accents: 7-color palette per theme, so agent message
+   borders reflect whichever theme is active instead of one fixed hex.
+   Agents are assigned a slot (see agentSlotColor() in app.js) that reads
+   these back via getComputedStyle — same one-source-of-truth pattern as
+   the rest of the theme system. All three Nord variants share Nord's own
+   published accent set (Aurora group + frost cyan + polar night). */
+html[data-theme="nord-night"],
+html[data-theme="nord-snow"],
+html[data-theme="nord-aurora"] {
+  --agent-1: #bf616a; /* nord11 red */
+  --agent-2: #d08770; /* nord12 orange */
+  --agent-3: #ebcb8b; /* nord13 yellow */
+  --agent-4: #a3be8c; /* nord14 green */
+  --agent-5: #88c0d0; /* nord8 frost cyan */
+  --agent-6: #b48ead; /* nord15 purple */
+  --agent-7: #2e3440; /* nord0 polar night */
+}
+html[data-theme="discord"] {
+  --agent-1: #f04747; /* red */
+  --agent-2: #faa61a; /* orange */
+  --agent-3: #f1c40f; /* gold */
+  --agent-4: #43b581; /* green */
+  --agent-5: #00b0f4; /* cyan */
+  --agent-6: #9b59b6; /* purple */
+  --agent-7: #99aab5; /* greyple */
+}
+
+/* Odysseus's real .send-btn defaults to var(--send-btn-bg, var(--red)) —
+   --red only changes for Discord (all 3 Nord variants share nord11), so
+   without this the send button looked frozen switching between them.
+   Bridging it to our theme accent instead so it actually reacts. */
+html { --send-btn-bg: var(--accent); --send-btn-hover: var(--accent); }
+
+.sidebar-spacer { display: none; }
+
+/* Room for the fixed .hamburger-btn floating at top:12px;left:9px so it
+   doesn't sit on top of the first nav item. */
+.sidebar { padding-top: 44px; }
+
+.nav-label { font-size: 13px; margin-left: 2px; }
+
+/* .icon-rail-btn is normally a fixed 34x34 square (their collapsed mini-rail)
+   at 50% opacity by default, meant to look muted until hovered when it's
+   just an icon. In our always-expanded sidebar with visible labels, that
+   same 50% opacity read as "washed out" against full-opacity chat bubbles —
+   bump it up so resting nav items are actually legible. */
+.sidebar .icon-rail-btn {
+  width: auto;
+  height: auto;
+  justify-content: flex-start;
+  padding: 8px 10px;
+  margin: 0 6px;
+  opacity: 0.9;
+}
+.sidebar .icon-rail-btn:hover,
+.sidebar .icon-rail-btn.active { opacity: 1; }
+
+.sidebar.collapsed { width: 48px; }
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .chat-list-section { display: none; }
+.sidebar.collapsed .icon-rail-btn { width: 34px; height: 34px; justify-content: center; padding: 0; margin: 0 auto; }
+
+/* ---------- chat list ---------- */
+
+.chat-list-section { margin-top: 14px; padding: 0 6px; overflow-y: auto; flex: 1; min-height: 0; }
+.chat-list-label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--color-muted, #888); opacity: 0.7; padding: 4px 10px 6px;
+}
+.chat-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.chat-list-item {
+  position: relative;
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  padding: 7px 8px; border-radius: 6px; cursor: pointer;
+  color: var(--fg); opacity: 0.7; font-size: 13px;
+}
+.chat-list-item:hover { opacity: 1; background: var(--panel-2, var(--bg)); }
+.chat-list-item.active { opacity: 1; background: color-mix(in srgb, var(--accent) 12%, var(--panel-3, transparent)); }
+.chat-list-item .chat-list-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.chat-list-item .chat-list-menu-btn {
+  background: none; border: none; color: inherit; padding: 2px 4px; cursor: pointer;
+  border-radius: 4px; opacity: 0; flex-shrink: 0;
+}
+.chat-list-item:hover .chat-list-menu-btn { opacity: 0.7; }
+.chat-list-item .chat-list-menu-btn:hover { opacity: 1; background: color-mix(in srgb, var(--fg) 15%, transparent); }
+
+.chat-item-menu {
+  position: absolute; top: 100%; right: 4px; z-index: 30;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+  padding: 4px; min-width: 120px; box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.chat-item-menu button {
+  display: block; width: 100%; text-align: left; background: none; border: none;
+  color: var(--fg); padding: 6px 8px; border-radius: 5px; font-size: 13px; cursor: pointer;
+  font-family: inherit;
+}
+.chat-item-menu button:hover { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+.chat-item-menu button.danger-item:hover { background: color-mix(in srgb, var(--red) 20%, transparent); color: var(--red); }
+
+/* ---------- theme modal (matches Odysseus's own: centered modal, grid of
+   theme cards with a swatch preview + name — not a small corner popup) ---------- */
+
+.theme-modal-backdrop-unused { /* kept out of the way; .modal-backdrop below is shared */ }
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-backdrop.hidden { display: none; }
+.theme-modal {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+  width: 520px; max-width: 90vw; max-height: 80vh; overflow-y: auto;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+.theme-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+  font-size: 15px; font-weight: 600; color: var(--fg);
+}
+.theme-modal-close {
+  background: none; border: none; color: var(--color-muted, #888); font-size: 20px;
+  cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 4px;
+}
+.theme-modal-close:hover { background: color-mix(in srgb, var(--fg) 12%, transparent); }
+.theme-modal-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px;
+}
+.theme-card {
+  background: var(--panel-2, var(--bg));
+  border: 2px solid var(--border); border-radius: 10px; padding: 14px;
+  cursor: pointer; display: flex; flex-direction: column; gap: 10px;
+  transition: border-color 0.12s ease;
+}
+.theme-card:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
+.theme-card.active { border-color: var(--accent); }
+.theme-card .theme-card-name {
+  font-size: 13px; font-weight: 600; color: var(--fg-bright, var(--fg));
+}
+.theme-card .theme-card-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--color-muted, #888); opacity: 0.8; margin-top: 2px;
+}
+.theme-swatch-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+}
+.theme-swatch-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+.theme-swatch {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.theme-swatch-dot {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent);
+}
+.theme-swatch-sm .theme-swatch-dot { width: 16px; height: 16px; }
+.theme-swatch-hex {
+  font-size: 9px; color: var(--color-muted, #888); letter-spacing: 0.01em;
+}
+
+/* Their welcome-enter fade-in animation isn't actually firing for us (some
+   other rule elsewhere in their file zeroes out animation-name on it) —
+   skip the dependency and just show it. */
+#welcome-screen { opacity: 1 !important; animation: none !important; }
+#welcome-screen:empty { padding: 0; }
+
+/* ---------- chat top bar actions ---------- */
+
+.chat-top-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+#chat-title { color: var(--fg-bright, var(--fg)); font-weight: 600; }
+.chat-top-actions { display: flex; align-items: center; gap: 6px; }
+.chat-status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; text-transform: none; letter-spacing: normal;
+  padding: 5px 10px; border-radius: 6px; background: var(--bg); color: var(--color-muted, #888);
+  border: 1px solid var(--border);
+}
+.chat-status-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.chat-status-badge.status-running { color: var(--accent); border-color: var(--accent); }
+.chat-status-badge.status-running::before { animation: status-pulse 1.4s ease-in-out infinite; }
+@keyframes status-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.chat-top-btn {
+  background: var(--bg); border: 1px solid var(--border); color: var(--fg);
+  font-family: inherit; font-size: 12px; padding: 5px 10px; border-radius: 6px; cursor: pointer;
+}
+.chat-top-btn:hover { background: color-mix(in srgb, var(--accent) 15%, transparent); border-color: var(--accent); }
+.chat-top-btn:disabled { opacity: 0.45; cursor: default; pointer-events: none; }
+.chat-top-btn-danger:hover { background: color-mix(in srgb, var(--red) 20%, transparent); border-color: var(--red); color: var(--red); }
+
+/* Resume is the one action that re-starts something, worth making it read
+   as a distinct, deliberate action rather than blending in with Rename. */
+#resume-chat-btn { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+#resume-chat-btn:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+
+/* ---------- confirm modal ---------- */
+
+.confirm-modal { width: 380px; }
+.confirm-modal .simple-modal-body { padding: 16px 18px; }
+.confirm-modal-message { font-size: 13px; color: var(--fg); margin-bottom: 16px; }
+.confirm-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ---------- messages ---------- */
+
+.msg-author { font-size: 11px; font-weight: 600; opacity: 0.7; margin-bottom: 4px; }
+.msg.msg-ai { border-color: var(--msg-accent, var(--border)); }
+.msg-author .msg-time { font-weight: 400; opacity: 0.7; margin-left: 4px; }
+.msg-author .msg-model { font-weight: 400; opacity: 0.6; }
+.msg-author-user { text-align: right; }
+.msg-thinking { margin-top: 6px; }
+.msg-thinking summary { color: var(--color-muted, #888); font-size: 11px; cursor: pointer; }
+.msg-thinking .thinking-body { color: var(--color-muted, #888); font-size: 12px; padding: 6px 0 0; white-space: pre-wrap; }
+
+.msg-search { margin-top: 6px; }
+.msg-search summary { color: var(--accent); font-size: 11px; cursor: pointer; }
+.search-results { display: flex; flex-direction: column; gap: 8px; padding: 8px 0 0; }
+.search-result {
+  padding: 6px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+}
+.search-result a { color: var(--accent); font-size: 12px; font-weight: 600; text-decoration: none; }
+.search-result a:hover { text-decoration: underline; }
+.search-result-snippet { color: var(--fg); opacity: 0.85; font-size: 12px; margin-top: 3px; }
+.search-result-url { color: var(--color-muted, #888); font-size: 11px; margin-top: 3px; word-break: break-all; }
+
+.msg.streaming .stream-text::after {
+  content: "▋"; display: inline-block; margin-left: 2px; animation: msg-blink 1s step-start infinite;
+}
+@keyframes msg-blink { 50% { opacity: 0; } }
+
+.msg-searching { color: var(--color-muted, #888); font-style: italic; }
+
+.uw-result-text { white-space: pre-wrap; }
+
+/* ---------- input bar toolbar (mode toggle + model select) ---------- */
+
+.chat-input-bar {
+  max-width: 800px; width: 100%; margin: 0 auto;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+  padding: 10px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+.chat-input-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+/* .mode-toggle / .mode-toggle-btn are real Odysseus classes (built for
+   their own Agent/Chat switch, complete with a fixed 28px height and an
+   absolutely-positioned ::before sliding indicator sized for their exact
+   layout). Reusing the class names without matching their layout caused
+   our button content to get clipped/misaligned inside their fixed-height,
+   overflow:hidden pill — that's the "overlapping" toolbar bug. Override
+   fully here rather than fight their sizing. */
+.mode-toggle {
+  display: inline-flex; height: auto; overflow: visible;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 999px; padding: 2px; gap: 2px;
+}
+.mode-toggle::before { content: none; }
+.mode-toggle-btn {
+  background: none; border: none; color: var(--color-muted, #888); font-family: inherit;
+  font-size: 12px; line-height: 1.4; padding: 5px 12px; height: auto;
+  border-radius: 999px; cursor: pointer; position: relative; z-index: 1;
+}
+.mode-toggle-btn.active { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); font-weight: 600; }
+.model-select {
+  width: auto; flex: 0 1 auto; max-width: 260px; font-size: 12px; padding: 6px 8px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 999px;
+}
+.chat-input-top { display: flex; align-items: flex-end; gap: 8px; width: 100%; position: relative; }
+.chat-input-top textarea { border: none; background: none; padding: 4px; min-height: 44px; }
+.chat-input-top textarea:focus { outline: none; }
+
+/* ---------- shared simple modal body (Memory, Settings) ---------- */
+
+.simple-modal-body { padding: 16px 18px; }
+.simple-modal-body h3.settings-subhead { font-size: 13px; margin: 18px 0 10px; color: var(--fg); }
+
+.memory-add-form, .model-pull-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.memory-add-form input, .model-pull-row input { flex: 1; }
+.memory-add-form input.memory-topic-input { flex: 0 0 140px; }
+.primary-btn {
+  background: var(--accent); border: 1px solid var(--accent); color: var(--bg);
+  font-weight: 600; border-radius: 6px; padding: 8px 14px; cursor: pointer; font-family: inherit;
+}
+#pull-status { font-size: 12px; color: var(--color-muted, #888); align-self: center; }
+
+#memory-list { display: flex; flex-direction: column; gap: 14px; max-height: 340px; overflow-y: auto; }
+.memory-group-label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--color-muted, #888); opacity: 0.8; margin-bottom: 6px; padding-left: 2px;
+}
+.memory-empty { padding: 8px 10px; color: var(--color-muted, #888); opacity: 0.6; font-size: 13px; }
+
+.memory-list, .settings-model-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.settings-model-list { max-height: 300px; overflow-y: auto; }
+.memory-list li, .settings-model-list li {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  font-size: 13px; color: var(--fg);
+}
+.memory-list li:hover, .settings-model-list li:hover { background: var(--panel-2, var(--bg)); }
+.memory-list .memory-content { flex: 1; }
+.memory-type-badge {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em;
+  padding: 2px 7px; border-radius: 999px; flex-shrink: 0;
+  background: var(--panel-2, var(--bg)); color: var(--color-muted, #888);
+}
+.memory-type-preference { color: var(--accent); }
+.memory-type-conclusion { color: var(--fg); }
+.settings-model-list .model-meta { color: var(--color-muted, #888); font-size: 11px; margin-left: 8px; }
+.list-delete-btn {
+  background: none; border: none; color: var(--color-muted, #888); cursor: pointer; font-size: 16px;
+  padding: 0 4px; border-radius: 4px; flex-shrink: 0;
+}
+.list-delete-btn:hover { color: var(--red); }
+
+.settings-form-simple { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+.settings-form-actions { display: flex; gap: 8px; }
+.secondary-btn { background: var(--bg); border: 1px solid var(--border); color: var(--fg); border-radius: 6px; padding: 8px 14px; cursor: pointer; font-family: inherit; }
+.settings-form-simple label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--color-muted, #888); }
+.settings-form-simple textarea { font-family: inherit; resize: vertical; }
+
+/* ---------- agents modal ---------- */
+
+.agents-toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+.agent-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; }
+.agent-list-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;
+  background: var(--bg); border: 1px solid var(--border);
+}
+.agent-list-item:hover { background: var(--panel-2, var(--bg)); }
+.agent-list-item .agent-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.agent-list-item .agent-info { flex: 1; min-width: 0; }
+.agent-list-item .agent-name { font-size: 13px; font-weight: 600; color: var(--fg); }
+.agent-list-item .agent-model { font-size: 11px; color: var(--color-muted, #888); }
+.agent-list-item .agent-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.agent-list-item .agent-actions button {
+  background: none; border: none; color: var(--color-muted, #888); cursor: pointer;
+  font-size: 12px; padding: 4px 8px; border-radius: 4px;
+}
+.agent-list-item .agent-actions button:hover { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+.agent-list-item .agent-actions button.danger-item:hover { background: color-mix(in srgb, var(--red) 20%, transparent); color: var(--red); }
+
+.agent-form { display: flex; flex-direction: column; gap: 12px; }
+.agent-form label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--color-muted, #888); }
+.agent-form textarea { font-family: inherit; resize: vertical; }
+.agent-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+
+.participant-item { cursor: pointer; }
+.participant-item input { width: auto; margin-right: 8px; }
+.participant-start-btn { width: 100%; margin-top: 12px; }
